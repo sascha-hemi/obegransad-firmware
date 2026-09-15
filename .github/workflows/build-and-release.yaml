@@ -236,14 +236,19 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          draft: true
-          prerelease: true
+          # Not draft/prerelease: the Home Assistant "Obegränsad" integration's
+          # update entity queries GET /releases/latest, which the GitHub API
+          # excludes both draft and prerelease releases from - either flag
+          # would make this release invisible to it.
+          draft: false
+          prerelease: false
           name: Release ${{ github.ref_name }}
           body: |
-            This is a prerelease version of the firmware.
-
             ## Installation
-            Flash the appropriate firmware binary for your device. https://github.com/ph1p/ikea-led-obegraensad?tab=readme-ov-file#ota-updates
+            Flash the appropriate firmware binary for your board (`esp32s3_firmware.bin`
+            for the Seeed Xiao ESP32-S3, the primary target of this fork) - see
+            [README.md](https://github.com/sascha-hemi/obegransad-firmware#readme) for
+            wiring and OTA-update details.
 
             ## Default Configuration
             - **Hostname:** ikea-led
@@ -254,8 +259,10 @@ jobs:
 
             **Note:** ESP32 devices will create an access point if unable to connect to WiFi.
 
-            If you use the Home Assistant "Obegränsad" integration, this release is picked up
-            automatically by its Firmware update entity - no manual download needed.
+            If you use the Home Assistant "Obegränsad" integration
+            ([sascha-hemi/ha-obegransad](https://github.com/sascha-hemi/ha-obegransad)),
+            this release is picked up automatically by its Firmware update entity - no
+            manual download needed.
           files: ./builds/*.bin
           fail_on_unmatched_files: false
         env:
