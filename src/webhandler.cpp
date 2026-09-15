@@ -3,11 +3,25 @@
 #include "messages.h"
 #include "scheduler.h"
 #include "websocket.h"
+#include "version.h"
 #ifdef ESP32
 #include <WiFi.h>
 #else
 #include <ESP8266WiFi.h>
 #endif
+
+static const char *getBoardName()
+{
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
+  return "esp32s3";
+#elif defined(CONFIG_IDF_TARGET_ESP32C3)
+  return "esp32c3";
+#elif defined(ESP32)
+  return "esp32";
+#else
+  return "esp8266";
+#endif
+}
 
 void sendJsonSuccess(AsyncWebServerRequest *request, const char *message)
 {
@@ -134,11 +148,24 @@ void handleGetData(AsyncWebServerRequest *request)
   }
 }
 
+void handleGetVersion(AsyncWebServerRequest *request)
+{
+  JsonDocument jsonDocument;
+  jsonDocument["version"] = FIRMWARE_VERSION;
+  jsonDocument["board"] = getBoardName();
+
+  String output;
+  serializeJson(jsonDocument, output);
+  request->send(200, "application/json", output);
+}
+
 void handleGetInfo(AsyncWebServerRequest *request)
 {
   JsonDocument jsonDocument;
   jsonDocument["rows"] = ROWS;
   jsonDocument["cols"] = COLS;
+  jsonDocument["version"] = FIRMWARE_VERSION;
+  jsonDocument["board"] = getBoardName();
   jsonDocument["status"] = currentStatus;
   jsonDocument["plugin"] = pluginManager.getActivePlugin()->getId();
   jsonDocument["rotation"] = Screen.currentRotation;
